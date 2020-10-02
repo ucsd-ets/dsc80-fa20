@@ -1,0 +1,27 @@
+exams/
+
+.idea
+.vscode
+
+# python
+__pycache__
+*.pyc
+.ipynb_checkpoints/
+
+# OSX
+.DS_Store
+
+# notes
+*.org
+
+# data files
+# data
+
+# zip files
+*.zip
+
+# WIP
+*-Copy*.ipynb
+
+#
+*/push2public.sh
