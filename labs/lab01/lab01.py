@@ -207,7 +207,7 @@ def arr_4(A):
     one share from 'left-over' money. If this never 
     happens, return -1. The first stock purchase occurs on day 0
     :param A: a 1d numpy array of stock prices.
-    :returns: an integer of the total number of shares.
+    :returns: the day on which you can buy at least one share from 'left-over' money
     :Example:
     >>> import numbers
     >>> stocks = np.array([3, 3, 3, 3])
