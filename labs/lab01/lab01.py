@@ -53,7 +53,28 @@ def median_vs_average(nums):
     True
     """
     
-    return ...
+    #take a non-empty list
+    if len(nums) == 0:
+        return False
+
+    #find the average of this list
+    total = sum(nums)
+    avg = total/len(nums)
+
+    idx = len(nums)//2
+    #check whether it is even length
+    if len(nums) % 2 == 0:
+        # find avg of median two element
+        med = (nums[idx] + nums[idx-1])/2
+    else:
+        med = nums[idx]
+
+    #comparision
+    if med >= avg:
+        return True
+    else:
+        return False
+
 
 # ---------------------------------------------------------------------
 # Question # 2
@@ -73,7 +94,18 @@ def same_diff_ints(ints):
     False
     """
 
-    return ...
+    if len(ints) == 0:
+        return False
+
+    for i in range(len(ints)):
+        val = ints[i]
+        for y in range(i+1, len(ints)):
+            real_diff= y - i;
+            diff = abs(ints[y] - val)
+            if real_diff == diff:
+                return True
+    return False
+
 
 # ---------------------------------------------------------------------
 # Question # 3
@@ -97,7 +129,10 @@ def n_prefixes(s, n):
     'aaa'
     """
 
-    return ...
+    result = ""
+    for i in range(n-1,-1,-1):
+        result = result + s[:i+1]
+    return result
 
 # ---------------------------------------------------------------------
 # Question # 4
@@ -119,7 +154,18 @@ def exploded_numbers(ints, n):
     ['01 02 03 04 05', '06 07 08 09 10', '13 14 15 16 17']
     """
 
-    return ...
+    #find width
+    wid = len(str(max(ints) + n))
+
+    result = []
+    for i in ints:
+        expanded = list(range(i-n, i+n+1, 1))
+        hold = ""
+        for y in expanded:
+            hold = hold + (str(y).zfill(wid)) + ' '
+        result.append(hold[:len(hold)-1])
+    return result
+
 
 # ---------------------------------------------------------------------
 # Question # 5
@@ -137,7 +183,12 @@ def last_chars(fh):
     'hrg'
     """
 
-    return ...
+    result = ''
+    for line in fh:
+        #get last char
+        result = result + line[-1-1]
+    fh.close()
+    return result
 
 # ---------------------------------------------------------------------
 # Question # 6
@@ -159,7 +210,8 @@ def arr_1(A):
     True
     """
 
-    return ...
+    toadd = np.arange(len(A)) ** 0.5
+    return A + toadd
 
 def arr_2(A):
     """
@@ -177,7 +229,12 @@ def arr_2(A):
     True
     """
 
-    return ...
+    root = np.sqrt(A)
+    result = []
+    for i in root:
+        result.append(isinstance(i, np.int))
+    return np.array(result)
+
 
 def arr_3(A):
     """
@@ -197,8 +254,14 @@ def arr_3(A):
     >>> out.max() == 0.03
     True
     """
+    lastday = A[:len(A)-1]
+    nextday = A[1:]
+    result = (nextday - lastday)/lastday
+    return np.round(result,2)
 
-    return ...
+
+
+
 
 def arr_4(A):
     """
@@ -218,7 +281,22 @@ def arr_4(A):
     True
     """
 
-    return ...
+    #every day has 20 dollars
+    budget = np.array([20] * len(A))
+
+    #calculate left over money
+    left = budget - (budget // A) * A
+
+    #sum left overs
+    all_left = np.cumsum(left)
+
+    for i in range(len(A)):
+        if all_left[i] >= A[i]:
+            return i
+    return -1
+
+
+
 
 # ---------------------------------------------------------------------
 # Question # 7
@@ -241,8 +319,49 @@ def salary_stats(salary):
     True
     """
 
-    return ...
-    
+    result = []
+    # find number of players
+    result.append(salary['Player'].nunique())
+    # find number of teams
+    result.append(salary['Team'].nunique())
+    # find total salary over the season
+    result.append(np.sum(salary['Salary']))
+    # find highest salary
+    result.append(salary['Salary'].max())
+    # find average salary of the Boston Celtics ('BOS')
+    result.append(np.round(salary[salary['Team'] == 'BOS']['Salary'].mean(),2))
+    # find 3rd lowest name and team name
+    #find 3rd lowest salary
+    x = salary['Salary'].unique()
+    x.sort()
+    thirdLow = x[2]
+    LowTable = salary[salary['Salary'] == thirdLow]
+    #sort player alphabetically
+    fst = LowTable.sort_values(by = ['Player']).iloc[0]
+    result.append(fst['Player'] + ',' + ' ' + fst['Team'])
+
+    #test duplicate last name
+    splited = salary['Player'].str.split(" ").str[1]
+    salary['last_name'] = splited
+    #check duplicate
+    whether = salary.duplicated('last_name').sum()
+    if whether > 1:
+        result.append(True)
+    else:
+        result.append(False)
+
+    #find highest salary employee's team's sum salary
+    t = salary['Salary'].unique()
+    t.sort()
+    highest_salary = t[len(t)-1]
+    highTable = salary[salary['Salary'] == highest_salary]
+    highTeam = highTable['Team'].iloc[0]
+    result.append(salary[salary['Team'] == highTeam]['Salary'].sum())
+
+    key = ['num_players','num_teams','total_salary','highest_salary',
+           'avg_bos','third_lowest','duplicates','total_highest']
+
+    return pd.Series(result, index=key)
 
 # ---------------------------------------------------------------------
 # Question # 8
@@ -276,7 +395,30 @@ def parse_malformed(fp):
     True
     """
 
-    return ...
+    key = ['first', 'last', 'weight', 'height', 'geo','geo1']
+    result = []
+    title = 0
+    with open(fp) as fh:
+        for line in fh:
+            if title == 0:
+                # skip table header
+                title = 1
+                continue
+            #change abnormal part by replacing
+            processed = line.replace(',',' ')
+            processed = processed.replace('"','')
+            splited = processed.split()
+            diction = dict(zip(key, splited))
+            result.append(diction)
+        #using zipped dictionary creating table
+        tb = pd.DataFrame(result)
+    fh.close()
+    tb['geo'] = tb['geo'] + ',' + tb['geo1']
+    newone = tb.drop('geo1',axis = 1)
+    # convert to proper type
+    newone['weight'] = newone['weight'].astype(np.float)
+    newone['height'] = newone['height'].astype(np.float)
+    return newone
 
 
 # ---------------------------------------------------------------------

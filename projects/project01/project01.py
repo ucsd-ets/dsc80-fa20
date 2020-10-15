@@ -31,8 +31,26 @@ def get_assignment_names(grades):
     >>> 'project02' in names['project']
     True
     '''
-    
-    return ...
+
+    key = ['lab','project','midterm','final','disc','checkpoint']
+    #get all column name
+    col = list(grades.columns)
+    # loop through to get required assignment name
+    hold = []
+    result = {}
+    for i in key:
+        result[i] = []
+        for x in col:
+            #be careful of uppercase in exam
+            z = x.lower()
+            if (i in z) and ('-' not in z):
+                #project not include checkpoint and free response
+                if i == 'project':
+                    if ('free' not in z) and ('check' not in z):
+                        result[i].append(x)
+                else:
+                    result[i].append(x)
+    return result
 
 
 # ---------------------------------------------------------------------
@@ -55,7 +73,37 @@ def projects_total(grades):
     >>> 0.7 < out.mean() < 0.9
     True
     '''
-    return ...
+
+    #every thing contain proj
+    col = grades.columns
+    projAll = []
+    for i in col:
+        # get rid of checkpt
+        if ('proj' in i) and ('check' not in i):
+            projAll.append(i)
+    projTB = grades[projAll]
+    #replace nan to 0
+    projTB = projTB.fillna(0)
+    #find all max pt
+    maxpt = []
+    rest = []
+    for i in projAll:
+        if 'Max' in i:
+            maxpt.append(i)
+        else:
+            #get rid of lateness
+            if 'Late' not in i:
+                rest.append(i)
+    maxtb = projTB[maxpt]
+    # find total maxpt can get
+    total = maxtb.sum(axis = 1).iloc[0]
+
+    #find student pt
+    student_proj = projTB[rest]
+    student_total = student_proj.sum(axis = 1)
+
+    #find proportion compared with max pt
+    return pd.Series(student_total / total)
 
 
 # ---------------------------------------------------------------------
@@ -82,7 +130,38 @@ def last_minute_submissions(grades):
     8
     """
 
-    return ...
+    result = {}
+    #using assignment name get key
+    name = get_assignment_names(grades)
+    key = name['lab']
+
+    #find all lab related
+    lab_relate = []
+    late = []
+    for i in grades.columns:
+        if 'lab' in i:
+            lab_relate.append(i)
+            if 'Late' in i:
+                late.append(i)
+    labAll = grades[lab_relate]
+    lateAll = labAll[late]
+
+    for x in range(len(key)):
+        count = 0
+        splited = lateAll[late[x]].str.split(":")
+        #set threshold at 7hrs
+        hr = splited.str[0].astype(int)
+        mints = splited.str[1].astype(int)
+        sec = splited.str[2].astype(int)
+
+        count = count + ((hr <= 7) & (hr > 0)).sum()
+        count = count + ((mints > 0) & (hr == 0)).sum()
+        count = count + ((sec > 0) & (hr == 0) & (mints == 0)).sum()
+
+        #store in result
+        result[key[x]] = count
+
+    return pd.Series(result)
 
 
 # ---------------------------------------------------------------------
@@ -103,8 +182,26 @@ def lateness_penalty(col):
     >>> set(out.unique()) <= {1.0, 0.9, 0.7, 0.4}
     True
     """
-        
-    return ...
+
+    #count corresponding hrs
+    oneW = 24 * 7
+    twoW = 2 * 24 * 7
+
+    #split and count
+    splited = col.str.split(":")
+    #convert to right type
+    hr = splited.str[0].astype(int)
+
+    z = hr #make a copy
+    # 7 is previous threshold
+    z = z.apply(lambda x: 1 if x <= 7 else x)
+    #check onw week deadline
+    z = z.apply(lambda x: 0.9 if (x > 7) & (x <= oneW) else x)
+    #check two week deadline
+    z = z.apply(lambda x: 0.7 if (x > oneW) & (x <= twoW) else x)
+    z = z.apply(lambda x: 0.4 if x > twoW else x)
+
+    return pd.Series(z)
 
 
 # ---------------------------------------------------------------------
