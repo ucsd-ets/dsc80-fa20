@@ -1,0 +1,79 @@
+Actual Arrival Times	
+Gate arrival time is the instance when the pilot sets the aircraft
+parking brake after arriving at the airport gate or passenger
+unloading area.  If the parking brake is not set, record the time for
+the opening of the passenger door.  Also, carriers using a Docking
+Guidance System (DGS) may record the official gate-arrival time when
+the aircraft is stopped at the appropriate parking mark.
+
+Actual Departure Times
+Gate departure time is the instance when the pilot releases the
+aircraft parking brake after passengers have loaded and aircraft doors
+have been closed. In cases where the flight returned to the departure
+gate before wheels-off time and departed a second time, report the
+last gate departure time before wheels-off time.  In cases of an air
+return, report the last gate departure time before the gate return.
+If passengers were boarded without the parking brake being set, record
+the time that the passenger door was closed.  Also, carriers using a
+Docking Guidance System may record the official gate-departure time
+based on aircraft movement.  For example, one DGS records gate
+departure time when the aircraft moves more than 1 meter from the
+appropriate parking mark within 15 seconds.  Fifteen seconds is then
+subtracted from the recorded time to obtain the appropriate out time.
+
+Airport Code
+A three character alpha-numeric code issued by the U.S. Department of
+Transportation which is the official designation of the airport. The
+airport code is not always unique to a specific airport because
+airport codes can change or can be reused.
+
+Arrival Delay
+Arrival delay equals the difference of the actual arrival time minus
+the scheduled arrival time. A flight is considered on-time when it
+arrives less than 15 minutes after its published arrival time.
+
+Cancelled Flight
+A flight that was listed in a carrier's computer reservation system
+during the seven calendar days prior to scheduled departure but was
+not operated.
+
+Carrier Code (AIRLINE)
+Code assigned by IATA and commonly used to identify a carrier. As the
+same code may have been assigned to different carriers over time, the
+code is not always unique.
+
+Departure Delay
+The difference between the scheduled departure time and the actual
+departure time from the origin airport gate.
+
+Diverted Flight
+A flight that is required to land at a destination other than the
+original scheduled destination for reasons beyond the control of the
+pilot/company.
+
+Elapsed Time
+The time computed from gate departure time to gate arrival time.
+
+Flight Number
+A one to four character alpha-numeric code for a particular flight.
+
+In-Flight Time
+The total time an aircraft is in the air between an origin-destination
+airport pair, i.e. from wheels-off at the origin airport to
+wheels-down at the destination airport.
+
+Scheduled Departure Time
+The scheduled time that an aircraft should lift off from the origin
+airport.
+
+Scheduled Time Of Arrival
+The scheduled time that an aircraft should cross a certain point
+(landing or metering fix).
+
+Taxi-In Time
+The time elapsed between wheels down and arrival at the destination
+airport gate.
+
+Taxi-Out Time
+The time elapsed between departure from the origin airport gate and
+wheels off.
