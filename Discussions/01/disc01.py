@@ -20,7 +20,9 @@ def data2array(filepath):
     100000
     """
 
-    return ...
+    result = np.genfromtxt(filepath)
+    #get rid of first one since it is title
+    return result[1:len(result)]
 
 
 def ends_in_9(arr):
@@ -36,4 +38,13 @@ def ends_in_9(arr):
     True
     """
 
-    return ...
+    copy = arr
+    copy = copy * 100
+    #round to int
+    copy = np.round(copy,0)
+    left = copy % 10
+    # count number of 9 in the array
+    count = (left == 9).sum()
+    # find total number in the array
+    total = arr.shape[0]
+    return count/total

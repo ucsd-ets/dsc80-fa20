@@ -19,7 +19,7 @@ def question01(data, labels):
     True
     """
 
-    return ...
+    return pd.DataFrame(data,index =labels)
 
 
 def question02(ser):
@@ -34,6 +34,13 @@ def question02(ser):
     True
     """
 
-    return ...
+    result = []
+    value = ser.values
+    for i in range(len(value)):
+        if value[i] % 3 == 0:
+            result.append(i)
+    return pd.Series(result)
+
+
 
 
