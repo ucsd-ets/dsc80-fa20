@@ -24,7 +24,17 @@ def get_san(infp, outfp):
     >>> os.remove(outfp)
     """
 
-    return ...
+    file = pd.read_csv(infp,chunksize = 1000)
+    for df in file:
+        #filter rows, find all flights arriving or departing from San Diego International Airport in 2015
+        #looking for year 2015
+        year2015 = df[df['YEAR'] == 2015]
+        #code is SAN for origin or destination
+        year2015 = year2015[(year2015['ORIGIN_AIRPORT'] == 'SAN') | (year2015['DESTINATION_AIRPORT'] == 'SAN')]
+
+        #write to output file
+        year2015.to_csv(outfp, mode = 'a',index = False)
+    return None
 
 
 def get_sw_jb(infp, outfp):
@@ -44,7 +54,16 @@ def get_sw_jb(infp, outfp):
     >>> os.remove(outfp)
     """
 
-    return ...
+    file = pd.read_csv(infp,chunksize = 1000)
+    for df in file:
+        #only care 2015
+        year2015 = df[df['YEAR'] == 2015]
+        #only care JetBlue or SouthWest Airline
+        year2015 = year2015[(year2015['AIRLINE'] == 'B6') | (year2015['AIRLINE'] == 'WN')]
+
+        #write to output file
+        year2015.to_csv(outfp, mode = 'a',index = False)
+    return None
 
 
 # ---------------------------------------------------------------------
@@ -64,7 +83,12 @@ def data_kinds():
     True
     """
 
-    return ...
+    return {'YEAR':'Q','MONTH':'O','DAY':'O','DAY_OF_WEEK':'O','AIRLINE':'N','FLIGHT_NUMBER':'N','TAIL_NUMBER':'O',
+            'ORIGIN_AIRPORT':'N','DESTINATION_AIRPORT':'N','SCHEDULED_DEPARTURE':'Q','DEPARTURE_TIME':'Q','DEPARTURE_DELAY':'Q',
+            'TAXI_OUT':'Q','WHEELS_OFF':'Q','SCHEDULED_TIME':'Q','ELAPSED_TIME':'Q','AIR_TIME':'Q','DISTANCE':'Q',
+            'WHEELS_ON':'Q','TAXI_IN':'Q','SHCEDULED_ARRIVAL':'Q','ARRIVAL_TIME':'Q','ARRIVAL_DELAY':'Q',
+            'DIVERTED':'N','CANCELLED':'N','CANCELLATION_REASON':'N','AIR_SYSTEM_DELAY':'Q','SECURITY_DELAY':'Q',
+            'AIRLINE_DELAY':'Q','LATE_AIRCRAFT_DELAY':'Q','WEATHER_DELAY':'Q'}
 
 
 def data_types():
@@ -80,7 +104,12 @@ def data_types():
     True
     """
 
-    return ...
+    return {'YEAR':'int','MONTH':'int','DAY':'int','DAY_OF_WEEK':'int','AIRLINE':'str','FLIGHT_NUMBER':'str','TAIL_NUMBER':'str',
+            'ORIGIN_AIRPORT':'str','DESTINATION_AIRPORT':'str','SCHEDULED_DEPARTURE':'int','DEPARTURE_TIME':'float','DEPARTURE_DELAY':'float',
+            'TAXI_OUT':'float','WHEELS_OFF':'float','SCHEDULED_TIME':'int','ELAPSED_TIME':'float','AIR_TIME':'float','DISTANCE':'int',
+            'WHEELS_ON':'float','TAXI_IN':'float','SHCEDULED_ARRIVAL':'int','ARRIVAL_TIME':'float','ARRIVAL_DELAY':'float',
+            'DIVERTED':'bool','CANCELLED':'bool','CANCELLATION_REASON':'str','AIR_SYSTEM_DELAY':'float','SECURITY_DELAY':'float',
+            'AIRLINE_DELAY':'float','LATE_AIRCRAFT_DELAY':'float','WEATHER_DELAY':'float'}
 
 
 # ---------------------------------------------------------------------
@@ -115,7 +144,38 @@ def basic_stats(flights):
     >>> out.columns.tolist() == cols
     True
     """
-    return ...
+    copy = flights.copy()
+    #depart or arrive?
+    copy['arriving'] = np.where((copy['DESTINATION_AIRPORT']=='SAN'), 1, 0)
+    #count number of arriving/departing flights to/from SAN
+    counted = pd.DataFrame(copy.groupby(['arriving']).count().iloc[:,1])
+    counted.columns = ['count']
+
+    #mean flight delay
+    mn = pd.DataFrame(copy.groupby(['arriving']).mean()['ARRIVAL_DELAY'])
+    mn.columns = ['mean_delay']
+
+    #median flight delay
+    md = pd.DataFrame(copy.groupby(['arriving']).median()['ARRIVAL_DELAY'])
+    md.columns = ['median_delay']
+
+    #single longest flight delay
+    longest = copy.groupby(['arriving','AIRLINE'],as_index = False)[['ARRIVAL_DELAY']].max()
+    #find airline code
+    code = longest.drop_duplicates(subset = ['arriving'])[['arriving','AIRLINE']].set_index('arriving')
+    code.columns = ['airline']
+
+    #find month
+    month = copy.groupby(['arriving','MONTH'],as_index = False).count() \
+        .sort_values(by = 'YEAR').drop_duplicates(subset = ['arriving'])[['arriving','MONTH']].set_index('arriving')
+    month.columns = ['top_months']
+
+    #combine
+    comb = counted.merge(mn,on = 'arriving').merge(md,on = 'arriving').merge(code,on = 'arriving').merge(month,on = 'arriving')
+    result = comb.rename(index = {0:'DEPARTING',1:'ARRIVING'})
+
+
+    return result.loc[['ARRIVING','DEPARTING']]
 
 
 # ---------------------------------------------------------------------
@@ -147,7 +207,22 @@ def depart_arrive_stats(flights):
     True
     """
 
-    return ...
+    #find all san related flights
+    sans = flights[(flights['ORIGIN_AIRPORT'] == 'SAN') | (flights['DESTINATION_AIRPORT'] == 'SAN')]
+    total = len(sans)
+    depart = sans['DEPARTURE_DELAY']
+    arrive = sans['ARRIVAL_DELAY']
+
+    #find late 1
+    l1 = ((depart > 0) & (arrive <= 0)).sum()/total
+
+    #find late2
+    l2 = ((depart <= 0) & (arrive > 0)).sum()/total
+
+    #find late3
+    l3 = ((depart > 0) & (arrive > 0)).sum()/total
+
+    return pd.Series([l1,l2,l3],index = ['late1','late2','late3'])
 
 
 def depart_arrive_stats_by_month(flights):
@@ -166,7 +241,15 @@ def depart_arrive_stats_by_month(flights):
     True
     """
 
-    return ...
+    def help_func(x):
+        func = {
+            'late1':((x['DEPARTURE_DELAY'] > 0) & (x['ARRIVAL_DELAY'] <= 0)).sum()/len(x),
+            'late2':((x['DEPARTURE_DELAY'] <= 0) & (x['ARRIVAL_DELAY'] > 0)).sum()/len(x),
+            'late3':((x['DEPARTURE_DELAY'] > 0) & (x['ARRIVAL_DELAY'] > 0)).sum()/len(x)
+        }
+        return pd.Series(func,index = ['late1','late2','late3'])
+
+    return flights.groupby(['MONTH']).apply(help_func)
 
 
 # ---------------------------------------------------------------------
@@ -191,7 +274,12 @@ def cnts_by_airline_dow(flights):
     True
     """
 
-    return ...
+    return flights.pivot_table(
+        values = 'FLIGHT_NUMBER',
+        index = 'DAY_OF_WEEK',
+        columns = 'AIRLINE',
+        aggfunc = 'count'
+    )
 
 
 def mean_by_airline_dow(flights):
@@ -211,7 +299,12 @@ def mean_by_airline_dow(flights):
     True
     """
 
-    return ...
+    return flights.pivot_table(
+        values = 'ARRIVAL_DELAY',
+        index = 'DAY_OF_WEEK',
+        columns = 'AIRLINE',
+        aggfunc = np.mean
+    )
 
 
 # ---------------------------------------------------------------------

@@ -17,7 +17,7 @@ def car_null_hypoth():
     >>> set(car_null_hypoth()) <= set(range(1,11))
     True
     """
-    return ...
+    return [1,4,7]
 
 
 def car_alt_hypoth():
@@ -28,7 +28,7 @@ def car_alt_hypoth():
     >>> set(car_alt_hypoth()) <= set(range(1,11))
     True
     """
-    return ...
+    return [2,5]
 
 
 def car_test_stat():
@@ -39,7 +39,7 @@ def car_test_stat():
     >>> set(car_test_stat()) <= set(range(1,5))
     True
     """
-    return ...
+    return [3,2,4]
 
 
 def car_p_value():
@@ -50,7 +50,7 @@ def car_p_value():
     >>> car_p_value() in [1,2,3,4,5]
     True
     """
-    return ...
+    return 3
 
 
 # ---------------------------------------------------------------------
@@ -67,8 +67,42 @@ def clean_apps(df):
     >>> cleaned.Reviews.dtype == int
     True
     '''
-    
-    return ...
+
+    #make a copy
+    copy = df.copy(deep = True)
+
+    #creat helper function for M and k
+    def help_clean(x):
+        if x[-1] == 'M':
+            #convert M to kb
+            return float(x[:len(x)-1]) * 1000
+        else:
+            #no need to convert
+            return float(x[:len(x)-1])
+
+    # strip letter from the end of size and convert
+    copy.loc[:,'Size'] = copy['Size'].apply(help_clean)
+
+    #strip + from installs
+    noPlus = copy['Installs'].apply(lambda x: x[:len(x)-1])
+    #strip comma
+    instal = noPlus.apply(lambda x: x.replace(',',''))
+    copy.loc[:,'Installs'] = instal.astype(np.int)
+
+
+    #change type free to 1, paid to 0
+    copy.loc[:,'Type'] = copy['Type'].replace({'Free': 1, "Paid":0})
+
+    #strip dollar mark in price
+    noD = copy['Price'].str.strip('$')
+    #convert to float
+    copy.loc[:,'Price'] = noD.astype(np.float)
+
+    #strip all but last year in updated
+    yr = copy['Last Updated'].apply(lambda x: (x.split())[-1])
+    copy.loc[:,'Last Updated'] = yr.astype(np.int)
+
+    return copy
 
 
 def store_info(cleaned):
@@ -84,7 +118,7 @@ def store_info(cleaned):
     '''
 
 
-    return ...
+    return [2018,'Adults only 18+','FINANCE','DATING']
 
 # ---------------------------------------------------------------------
 # Question 3
@@ -102,7 +136,22 @@ def std_reviews_by_app_cat(cleaned):
     True
     """
 
-    return ...
+    calculated = cleaned.groupby(['Category']).agg(['mean',np.std])['Reviews']
+
+    #use hash
+    mean_dic = {}
+    std_dic = {}
+    for i in calculated.index:
+        mean_dic[i] = calculated.loc[i,'mean']
+        std_dic[i] = calculated.loc[i,'std']
+
+    subdf = cleaned.loc[:,['Category','Reviews']]
+    #standardize review
+    mean_col = subdf['Category'].apply(lambda x: mean_dic.get(x))
+    std_col = subdf['Category'].apply(lambda x: std_dic.get(x))
+    #calculated standardized value
+    subdf.loc[:,'Reviews'] = (subdf['Reviews'] - mean_col)/std_col
+    return subdf
 
 
 def su_and_spread():
@@ -122,7 +171,7 @@ def su_and_spread():
        'VIDEO_PLAYERS', 'NEWS_AND_MAGAZINES', 'MAPS_AND_NAVIGATION']
     True
     """
-    return ...
+    return ['FAMILY','FAMILY']
 
 
 # ---------------------------------------------------------------------
@@ -148,8 +197,36 @@ def read_survey(dirname):
     FileNotFoundError: ... 'nonexistentfile'
     """
 
-    return ...
+    suv1 = pd.read_csv(dirname + '/survey1.csv')
+    #rearange survey1 column order
+    key = ['first name', 'last name', 'current company', 'job title', 'email', 'university']
+    suv1 = suv1[key]
 
+    suv2 = pd.read_csv(dirname + '/survey2.csv')
+    #lower survey2 column names
+    suv2 = suv2.rename(str.lower,axis = 1)
+    suv2 = suv2[key]
+
+    suv3 = pd.read_csv(dirname + '/survey3.csv')
+    #lower survey3 column names and strip _
+    suv3 = suv3.rename(str.lower,axis = 1)
+    suv3.columns = suv3.columns.str.replace('_',' ')
+    suv3 = suv3[key]
+
+    suv4 = pd.read_csv(dirname + '/survey4.csv')
+    #similar work as survey3
+    suv4.columns = suv4.columns.str.replace('_',' ')
+    suv4 = suv4.rename(str.lower,axis = 1)
+    suv4 = suv4[key]
+
+    suv5 = pd.read_csv(dirname + '/survey5.csv')
+    #similar work as survey4
+    suv5.columns = suv5.columns.str.replace('_',' ')
+    suv5 = suv5.rename(str.lower,axis = 1)
+    suv5 = suv5[key]
+
+    #combine all df together
+    return pd.concat([suv1,suv2,suv3,suv4,suv5])
 
 def com_stats(df):
     """
@@ -168,7 +245,7 @@ def com_stats(df):
     True
     """
 
-    return ...
+    return [5,253,'VP Sales',369]
 
 
 # ---------------------------------------------------------------------
@@ -195,7 +272,14 @@ def combine_surveys(dirname):
     FileNotFoundError: ... 'nonexistentfile'
     """
 
-    return ...
+    name = os.listdir(dirname)
+    df = pd.read_csv(dirname + '/favorite1.csv').head()
+    for i in range(1,len(name)):
+        hold = pd.read_csv(dirname + '/favorite' + str(i) + '.csv')
+        df = pd.merge(df, hold, on = 'id', how = 'outer')
+
+    df = df.set_index('id')
+    return df
 
 
 def check_credit(df):
@@ -213,7 +297,21 @@ def check_credit(df):
     (1000, 2)
     """
 
-    return ...
+    threshold = 4 * 0.25
+    notAnswer = df.isna().sum(axis = 1)
+
+    checked = notAnswer <= threshold
+    ex = checked.replace({True:5,False:0})
+
+    #check class extra credit
+    student_thresh = len(df) * 0.1
+
+    overall = (df[['movie','genre','animal','plant']].isna().sum() <= student_thresh).sum() >= 1
+    if overall == True:
+        ex = ex + 1
+
+    df = df.assign(extra = ex)
+    return df[['name_y','extra']]
 
 # ---------------------------------------------------------------------
 # Question # 6
@@ -234,7 +332,7 @@ def most_popular_procedure(pets, procedure_history):
     True
     """
 
-    return ...
+    return 'VACCINATIONS'
 
 
 def pet_name_by_owner(owners, pets):
@@ -255,7 +353,36 @@ def pet_name_by_owner(owners, pets):
     True
     """
 
-    return ...
+    owners_ss = owners[['OwnerID','Name']]
+    owners_ss = owners_ss.rename({'Name':'Owner'},axis = 1)
+    pets_ss = pets[['OwnerID','Name']]
+    merged = pd.merge(owners_ss,pets_ss,on = 'OwnerID',how = 'outer')
+
+
+    #get duplicateds owner id
+    more = merged[merged['OwnerID'].duplicated()]
+    ids = more['OwnerID'].value_counts().index.tolist()
+
+    #drop duplicates
+    merged = merged.drop_duplicates(subset = ['OwnerID'])
+
+    for i in ids:
+        hold = []
+        #find first occurance
+        hold.append(merged[merged['OwnerID'] == i]['Name'].iloc[0])
+        #find other names
+        hold.extend(more[more['OwnerID'] == i ]['Name'].values.tolist())
+
+        #convert to string
+        hold = [', '.join(x for x in hold)][0]
+
+        #find idx
+        idx = merged[merged['OwnerID'] == i].index[0]
+        #change it
+        merged[merged['OwnerID'] == i].loc[idx,'Name']= hold
+
+    return merged.set_index('Owner')['Name']
+
 
 
 def total_cost_per_city(owners, pets, procedure_history, procedure_detail):
@@ -275,9 +402,26 @@ def total_cost_per_city(owners, pets, procedure_history, procedure_detail):
     >>> set(out.index) <= set(owners['City'])
     True
     """
-    
-    return ...
 
+    #only care ownerid and city
+    own = owners[['OwnerID','City']]
+    #only care petid and owner id
+    pet_s = pets[['OwnerID','PetID']]
+    #combine owner and pet
+    pet_own = own.merge(pet_s,on='OwnerID')
+
+    #conly care petID and procedure code
+    pc = procedure_history[['PetID','ProcedureSubCode']]
+    #only care subcode and price
+    pd = procedure_detail[['ProcedureSubCode','Price']]
+
+    #combine all
+    fin = pc.merge(pet_own,on = 'PetID')
+    fini = pd.merge(fin, on = 'ProcedureSubCode')
+
+    #only care price and city
+    subset = fini[['Price','City']]
+    return subset.groupby('City').sum()
 
 
 # ---------------------------------------------------------------------
