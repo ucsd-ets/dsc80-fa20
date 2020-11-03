@@ -1,0 +1,27 @@
+field name,description
+unique_mos_id,"unique ID of the officer (""member of service"") "
+first_name,Officer's first name
+last_name,Officer's last name
+command_now,Officer's command assignment as of July 2020
+complaint_id,Unique ID of the complaint
+month_received,Month the complaint was received by CCRB
+year_received,Year the complaint was received by CCRB
+month_closed,Month the complaint investigation was closed by CCRB
+year_closed,Year the complaint investigation was closed by CCRB
+command_at_incident,Officer's command assignment at the time of the incident
+rank_abbrev_incident,"Officer's rank at the time of the incident, abbreviation"
+rank_abbrev_now,"Officer's rank as of July 2020, abbreviation"
+rank_now,Officer's rank as of July 2020
+rank_incident,Officer's rank at the time of the incident
+mos_ethnicity,Officer's ethnicity
+mos_gender,Officer's gender
+mos_age_incident,Officer's age at time of incident
+complainant_ethnicity,Complainant's ethnicity
+complainant_gender,Complainant's gender
+complainant_age_incident,Complainant's age at time of incident
+fado_type,Top-level category of complaint
+allegation,Specific category of complaint
+precinct,Precinct associated with the complaint
+contact_reason,Reason officer made contact with complainant
+outcome_description,Outcome of the contact between office and complainant
+board_disposition,Finding by the CCRB
