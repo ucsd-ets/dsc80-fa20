@@ -91,7 +91,7 @@ def stock_history(ticker, year, month):
     >>> history = stock_history('BYND', 2019, 6)
     >>> history.shape == (20, 13)
     True
-    >>> history.label.iloc[0]
+    >>> history.label.iloc[-1]
     'June 03, 19'
     """
     return ...
